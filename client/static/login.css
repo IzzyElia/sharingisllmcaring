@@ -1,0 +1,56 @@
+/* Login / register page. */
+body {
+    background: radial-gradient(1200px 800px at 50% -10%, #1a1f2b 0%, var(--bg) 60%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+}
+
+.card {
+    width: 100%;
+    max-width: 380px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+.card .brand { margin-bottom: 22px; }
+
+.tabs {
+    display: flex; gap: 4px; padding: 4px;
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 10px; margin-bottom: 20px;
+}
+.tab {
+    flex: 1; padding: 9px 0; text-align: center; cursor: pointer;
+    border-radius: 7px; font-size: 14px; color: var(--muted);
+    border: none; background: transparent; font-weight: 550;
+    transition: background .15s, color .15s;
+}
+.tab.active { background: var(--panel); color: var(--text); box-shadow: 0 1px 0 rgba(255, 255, 255, .03) inset; }
+
+label { display: block; font-size: 12.5px; color: var(--muted); margin: 0 0 6px 2px; }
+input {
+    width: 100%; padding: 11px 13px; margin-bottom: 16px;
+    background: var(--panel-2); border: 1px solid var(--border);
+    color: var(--text); border-radius: 10px; font-size: 14.5px;
+    outline: none; transition: border-color .15s, box-shadow .15s;
+}
+input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(109, 139, 255, .18); }
+
+button.primary {
+    width: 100%; padding: 12px; border: none; cursor: pointer;
+    background: var(--accent); color: white; border-radius: 10px;
+    font-size: 15px; font-weight: 600; transition: background .15s, transform .05s;
+}
+button.primary:hover { background: var(--accent-hover); }
+button.primary:active { transform: translateY(1px); }
+button.primary:disabled { opacity: .6; cursor: default; }
+
+.msg { font-size: 13px; margin-top: 14px; min-height: 18px; text-align: center; }
+.msg.error { color: var(--danger); }
+.msg.ok { color: var(--ok); }
+.hint { margin-top: 18px; font-size: 12px; color: var(--muted); text-align: center; line-height: 1.5; }

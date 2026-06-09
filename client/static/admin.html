@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin · Sharing is LLM Caring</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/admin.css">
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <div class="dot"></div>
+            <h1>Admin</h1>
+        </div>
+        <nav class="topbar-nav">
+            <a href="/index">← Chats</a>
+            <button id="logout" type="button">Log out</button>
+        </nav>
+    </header>
+
+    <main class="container">
+        <div class="banner" id="banner" hidden></div>
+
+        <!-- Registration tokens ------------------------------------------- -->
+        <section class="panel">
+            <div class="panel-head">
+                <h2>Registration tokens</h2>
+                <span class="count" id="token-count"></span>
+            </div>
+
+            <form class="create-row" id="create-token-form">
+                <div class="field">
+                    <label for="token-uses">Allowed uses</label>
+                    <input id="token-uses" type="number" min="1" value="1" required>
+                </div>
+                <div class="field grow">
+                    <label for="token-auth-types">Auth types (comma-separated)</label>
+                    <input id="token-auth-types" type="text" value="user, can_chat" placeholder="user, can_chat" required>
+                </div>
+                <button class="primary" type="submit">Create token</button>
+            </form>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Token</th>
+                            <th class="num">Uses left</th>
+                            <th>Auth types</th>
+                            <th class="actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="token-rows"></tbody>
+                </table>
+                <div class="empty" id="token-empty" hidden>No registration tokens yet.</div>
+            </div>
+        </section>
+
+        <!-- Users --------------------------------------------------------- -->
+        <section class="panel">
+            <div class="panel-head">
+                <h2>Users</h2>
+                <span class="count" id="user-count"></span>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Auth types</th>
+                            <th>Hashed username</th>
+                            <th class="actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-rows"></tbody>
+                </table>
+                <div class="empty" id="user-empty" hidden>No users yet.</div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/admin.js"></script>
+</body>
+</html>

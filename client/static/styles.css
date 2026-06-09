@@ -1,0 +1,34 @@
+/* Shared theme tokens, reset, and base typography for all pages. */
+:root {
+    --bg: #0f1115;
+    --sidebar: #14171e;
+    --panel: #181b22;
+    --panel-2: #1f232c;
+    --border: #2a2f3a;
+    --text: #e7e9ee;
+    --muted: #9aa3b2;
+    --accent: #6d8bff;
+    --accent-hover: #5a79f5;
+    --danger: #ff6b6b;
+    --ok: #4ade80;
+    --user-bubble: #2a3350;
+    --bot-bubble: #1f232c;
+    --radius: 12px;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+}
+
+/* Brand mark (logo dot + wordmark) */
+.brand { display: flex; align-items: center; gap: 10px; }
+.brand .dot {
+    width: 30px; height: 30px; border-radius: 9px;
+    background: linear-gradient(135deg, var(--accent), #a06dff);
+}
+.brand h1 { font-size: 18px; margin: 0; font-weight: 650; letter-spacing: .2px; }
