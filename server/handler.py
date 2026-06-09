@@ -7,6 +7,10 @@ from server import auth
 LOGIN_ENDPOINT = "/login"
 MAX_BODY_SIZE = 128 * 1024
 
+# Custom response headers the browser must be allowed to read cross-origin
+# (otherwise fetch() can only see the CORS-safelisted ones).
+EXPOSED_HEADERS = "Granted-Access-Token, Access-Token, Access-Token-Expires-At, Chat-UID, API-Error"
+
 class AuthFailureResponse(Enum):
     AlwaysAllowed = 0
     RedirectToLogin = 1,
@@ -16,6 +20,26 @@ class Handler(BaseHTTPRequestHandler):
     def do(self, method: str):
         if self.path in endpoints:
             function = endpoints[self.path]
+
+            if method == "OPTIONS":
+                # Always advertise the allowed methods (RFC 7231). When this is an
+                # actual CORS preflight, also answer the browser's preflight query.
+                # The Access-Control-Allow-Origin / -Expose-Headers are added for
+                # every response by the end_headers() override below.
+                allowed_methods = ", ".join(function.allowed_methods())
+                self.send_response(204)
+                self.send_header("Allow", allowed_methods)
+                if self.headers.get("Access-Control-Request-Method") is not None:
+                    self.send_header("Access-Control-Allow-Methods", allowed_methods)
+                    requested_headers = self.headers.get("Access-Control-Request-Headers")
+                    self.send_header(
+                        "Access-Control-Allow-Headers",
+                        requested_headers if requested_headers is not None else "Access-Token, Content-Type",
+                    )
+                    self.send_header("Access-Control-Max-Age", "86400")
+                self.end_headers()
+                return
+
             access_token = self.headers.get("Access-Token")
             if access_token is None and function.on_auth_failure() != AuthFailureResponse.AlwaysAllowed:
                 self.send_response(401)
@@ -28,7 +52,7 @@ class Handler(BaseHTTPRequestHandler):
                     if potential_auth_type in user.auth_types:
                         authorized = True
                         break
-                if not authorized: raise auth.InvalidAccessTokenException
+                if not authorized: raise auth.InvalidAccessTokenException()
             except (auth.ExpiredAccessTokenException, auth.InvalidAccessTokenException):
                 if function.on_auth_failure() == AuthFailureResponse.Unauthorized:
                     self.send_response(401)
@@ -75,6 +99,24 @@ class Handler(BaseHTTPRequestHandler):
     def do_PUT(self):
         self.do('PUT')
 
+    def do_OPTIONS(self):
+        self.do('OPTIONS')
+
+    def do_HEAD(self):
+        self.send_response(200)
+        self.end_headers()
+        return
+
+    def end_headers(self):
+        # Attach CORS headers to every response so a cross-origin browser can both
+        # call the API and read our custom response headers. The app authenticates
+        # with a bearer header (not cookies), so no credentials handling is needed.
+        origin = self.headers.get("Origin")
+        self.send_header("Access-Control-Allow-Origin", origin if origin is not None else "*")
+        self.send_header("Vary", "Origin")
+        self.send_header("Access-Control-Expose-Headers", EXPOSED_HEADERS)
+        super().end_headers()
+
 class APIFunction(ABC):
     def __init__(self):
         pass
@@ -90,6 +132,10 @@ class APIFunction(ABC):
 
     @abstractmethod
     def execute(self, handler: Handler, body: bytes, method: str, user: auth.User): ...
+
+    @abstractmethod
+    def allowed_methods(self) -> list[str]: ...
+
 
 endpoints: dict[str, APIFunction] = {}
 
