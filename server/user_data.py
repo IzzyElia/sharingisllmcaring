@@ -1,13 +1,17 @@
+from __future__ import annotations
 from .storage import Serializable
 from .uids import generate_uid
 
 class Chat(Serializable):
-    def __init__(self, system_prompt: str, user_data: UserData):
+    def __init__(self, system_prompt: str = None, user_data: UserData = None):
         super().__init__()
         self.messages = [
             {'role': 'system', 'content': system_prompt},
         ]
-        self.uid = generate_uid([x.uid for x in user_data.chats])
+        if user_data is not None:
+            self.uid = generate_uid([x.uid for x in user_data.chats.values()])
+        else:
+            self.uid = None # Should only trigger during deserialization, which will fill in the uid later
         self.title = self.uid
         self.currently_responding: bool = False
 
@@ -17,6 +21,7 @@ class Chat(Serializable):
             "title": self.title,
             "messages": self.messages,
         }
+
     def deserialize(self, data: dict):
         self.uid = data["uid"]
         self.title = data["title"]
@@ -38,7 +43,8 @@ class UserData(Serializable):
 
     def deserialize(self, data: dict):
         serialized_chats = data["chats"]
-        chats = [Chat() for _ in range(len(serialized_chats))]
+        self.chats = {}
         for i in range(len(serialized_chats)):
-            chats[i].deserialize(serialized_chats[serialized_chats[i]])
-        return self
+            chat = Chat()
+            chat.deserialize(serialized_chats[i])
+            self.chats[chat.uid] = chat

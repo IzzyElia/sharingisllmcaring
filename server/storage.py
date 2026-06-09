@@ -105,7 +105,7 @@ def load_all_objects_of_category(category: str, t: type[Savable]):
 def delete_serializable_object_data(obj: Savable):
     filepath = os.path.join(DATA_DIR, obj.category(), f"{obj.id()}.{obj.category().lower()}")
     if not os.path.exists(filepath):
-        raise Exception(f"No file for {obj.category():{obj.id()}} to delete")
+        raise Exception(f"No file for {obj.category()}:{obj.id()} to delete")
     try:
         os.remove(filepath)
     except Exception as e:

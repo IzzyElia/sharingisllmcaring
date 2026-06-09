@@ -5,7 +5,7 @@ import hmac
 from dotenv import load_dotenv
 import os
 
-from restapi.user_data import UserData
+from server.user_data import UserData
 from . import storage
 from . import uids
 from .user_data import UserData
@@ -24,11 +24,11 @@ if HASHING_SECRET is None:
 class User(storage.Savable):
     def __init__(self, uid: str = None, auth_types: list[str] = None, hashed_username: str = None, hashed_password: str = None):
         super().__init__()
-        self.uid = uid
-        self.hashed_username = hashed_username
-        self.hashed_password = hashed_password
-        self.auth_types = auth_types
-        self.user_data = UserData()
+        self.uid: str = uid
+        self.hashed_username: str = hashed_username
+        self.hashed_password: str = hashed_password
+        self.auth_types: list[str] = auth_types
+        self.user_data: UserData = UserData()
 
     def category(self) -> str: return "user"
 
@@ -50,10 +50,10 @@ class User(storage.Savable):
         self.hashed_password = data["hashed_password"]
         user_data = UserData()
         user_data.deserialize(data["user_data"])
-        self.user_data = user_data,
+        self.user_data = user_data
 
 class AccessToken:
-    def __init__(self, access_token: str, user_uid: str, expires_at: int):
+    def __init__(self, access_token: str, user_uid: str, expires_at: float):
         self.access_token_key = access_token
         self.user_uid = user_uid
         self.expires_at = expires_at
@@ -99,13 +99,15 @@ def delete_user(uid: str):
 def check_password(user: User, plaintext_password: str) -> bool:
     return bcrypt.checkpw(plaintext_password.encode(PASSWORD_ENCODING), user.hashed_password.encode(PASSWORD_ENCODING))
 
-def generate_access_token(user_uid: str, expires_at: int) -> str:
+def generate_access_token(user_uid: str, expires_at: float) -> AccessToken:
     access_token_string = uids.generate_uid(list(_access_tokens.keys()))
     access_token = AccessToken(access_token_string, user_uid, expires_at)
     _access_tokens[access_token_string] = access_token
-    return access_token.access_token_key
+    return access_token
 
-def get_access_token_user(access_token_string: str) -> User:
+def get_access_token_user(access_token_string: str | None) -> User:
+    if access_token_string is None:
+        raise InvalidAccessTokenException(f"The access token is not valid")
     if access_token_string in _access_tokens:
         access_token = _access_tokens[access_token_string]
         if access_token.expires_at > time.time():
@@ -114,6 +116,10 @@ def get_access_token_user(access_token_string: str) -> User:
         else: raise ExpiredAccessTokenException(f"The access token has expired")
     else: raise InvalidAccessTokenException(f"The access token is not valid")
 
+def routine_cleanup():
+    for token in list(_access_tokens.values()):
+        if token.expires_at < time.time():
+            _access_tokens.pop(token.access_token_key, None)
 
 if __name__ == "__main__":
     user = add_user(plaintext_username="test", plaintext_password="password", auth_types=["user", "admin"])

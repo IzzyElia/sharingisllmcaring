@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from http.server import BaseHTTPRequestHandler
 from enum import Enum
 
-from restapi import auth
+from server import auth
 
 LOGIN_ENDPOINT = "/login"
 MAX_BODY_SIZE = 128 * 1024
@@ -16,31 +16,45 @@ class Handler(BaseHTTPRequestHandler):
     def do(self, method: str):
         if self.path in endpoints:
             function = endpoints[self.path]
-            access_token = self.request.headers.get("Access-Token")
+            access_token = self.headers.get("Access-Token")
+            if access_token is None and function.on_auth_failure() != AuthFailureResponse.AlwaysAllowed:
+                self.send_response(401)
+                self.end_headers()
+                return
             try:
                 user = auth.get_access_token_user(access_token)
-            except auth.ExpiredAccessTokenException or auth.InvalidAccessTokenException:
+            except (auth.ExpiredAccessTokenException, auth.InvalidAccessTokenException):
                 if function.on_auth_failure() == AuthFailureResponse.Unauthorized:
                     self.send_response(401)
+                    self.end_headers()
                     return
                 elif function.on_auth_failure() == AuthFailureResponse.RedirectToLogin:
                     self.send_response(302)
                     self.send_header("Location", f"{LOGIN_ENDPOINT}?redirect={self.path}")
+                    self.end_headers()
                     return
                 elif function.on_auth_failure() == AuthFailureResponse.AlwaysAllowed:
                     user = None
+                else: raise NotImplementedError()
             try:
-                content_length = int(self.headers.get("Content-Length"))
+                content_length_str = self.headers.get("Content-Length")
+                if content_length_str is None:
+                    content_length = 0
+                else:
+                    content_length = int(content_length_str)
                 if content_length > MAX_BODY_SIZE:
                     raise Exception(f"Content length {content_length} exceeds 128KB")
                 body = self.rfile.read(content_length)
             except Exception:
                 self.send_response(400)
+                self.end_headers()
+                return
 
             function.execute(self, body, method, user)
         else:
             self.send_response(404)
-        self.end_headers()
+            self.end_headers()
+            return
 
     def do_GET(self):
         self.do('GET')
@@ -59,7 +73,7 @@ class APIFunction(ABC):
         pass
 
     @abstractmethod
-    def endpoints(self, handler: Handler, function: str) -> list[str]: ...
+    def endpoints(self) -> list[str]: ...
 
     @abstractmethod
     def auth_types_allowed(self) -> list[str]: ...
