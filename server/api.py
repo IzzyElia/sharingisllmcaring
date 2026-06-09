@@ -20,6 +20,8 @@ class APICreateRegistrationToken(APIFunction):
         return [
             '/api/create_registration_token',
         ]
+    def allowed_methods(self) -> str:
+        return "POST, OPTIONS"
     def auth_types_allowed(self) -> list[str]:
         return [
             'admin'
@@ -51,6 +53,8 @@ class APIDeleteRegistrationToken(APIFunction):
         return [
             '/api/delete_registration_token',
         ]
+    def allowed_methods(self) -> str:
+        return "POST, OPTIONS"
     def auth_types_allowed(self) -> list[str]:
         return [
             'admin'
@@ -81,6 +85,8 @@ class APIDeleteUser(APIFunction):
         return [
             '/api/delete_user',
         ]
+    def allowed_methods(self) -> str:
+        return "POST, OPTIONS"
     def auth_types_allowed(self) -> list[str]:
         return [
             'admin'
@@ -104,6 +110,8 @@ class APIListRegistrationTokens(APIFunction):
         return [
             '/api/list_registration_tokens',
         ]
+    def allowed_methods(self) -> str:
+        return "POST, OPTIONS"
     def auth_types_allowed(self) -> list[str]:
         return [
             'admin'
@@ -127,6 +135,8 @@ class APIListUsers(APIFunction):
         return [
             '/api/list_users',
         ]
+    def allowed_methods(self) -> str:
+        return "POST, OPTIONS"
     def auth_types_allowed(self) -> list[str]:
         return [
             'admin'
@@ -151,6 +161,9 @@ class APIRegister(APIFunction):
         return [
             "/api/register",
         ]
+
+    def allowed_methods(self) -> str:
+        return "POST, OPTIONS"
 
     def auth_types_allowed(self) -> list[str]:
         return []
@@ -203,6 +216,9 @@ class APILogin(APIFunction):
             "/api/login",
         ]
 
+    def allowed_methods(self) -> str:
+        return "POST, OPTIONS"
+
     def auth_types_allowed(self) -> list[str]:
         return []
 
@@ -246,6 +262,9 @@ class APICreateChat(APIFunction):
             "/create_chat",
         ]
 
+    def allowed_methods(self) -> str:
+        return "POST, OPTIONS"
+
     def auth_types_allowed(self) -> list[str]:
         return [
             'can_chat'
@@ -276,6 +295,9 @@ class APIGetChats(APIFunction):
         return [
             "/list_chats",
         ]
+
+    def allowed_methods(self) -> str:
+        return "POST, OPTIONS"
 
     def auth_types_allowed(self) -> list[str]:
         return [
@@ -308,6 +330,9 @@ class APIGetChat(APIFunction):
         return [
             "/get_chat",
         ]
+
+    def allowed_methods(self) -> str:
+        return "POST, OPTIONS"
 
     def auth_types_allowed(self) -> list[str]:
         return [
@@ -342,6 +367,9 @@ class APISendChatMessage(APIFunction):
         return [
             "/send_chat_message",
         ]
+
+    def allowed_methods(self) -> str:
+        return "POST, OPTIONS"
 
     def auth_types_allowed(self) -> list[str]:
         return [
@@ -432,6 +460,9 @@ class APIServeStaticFile(APIFunction):
 
     def on_auth_failure(self) -> AuthFailureResponse:
         return AuthFailureResponse.AlwaysAllowed
+
+    def allowed_methods(self) -> str:
+        return "GET, HEAD, OPTIONS"
 
     def execute(self, handler: Handler, body: bytes, method: str, user: auth.User):
         file_path = root_static_directory + handler.path

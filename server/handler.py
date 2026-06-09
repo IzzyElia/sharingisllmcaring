@@ -16,6 +16,19 @@ class Handler(BaseHTTPRequestHandler):
     def do(self, method: str):
         if self.path in endpoints:
             function = endpoints[self.path]
+
+            if method == "OPTIONS":
+                origin = self.headers.get("Origin")
+                requested_method = self.headers.get("Access-Control-Request-Method")
+                if origin is None or requested_method is None:
+                    self.send_response(400)
+                    self.end_headers()
+                    return
+                self.send_response(200)
+                self.send_header("Allow", function.allowed_methods())
+                self.end_headers()
+                return
+
             access_token = self.headers.get("Access-Token")
             if access_token is None and function.on_auth_failure() != AuthFailureResponse.AlwaysAllowed:
                 self.send_response(401)
@@ -75,6 +88,14 @@ class Handler(BaseHTTPRequestHandler):
     def do_PUT(self):
         self.do('PUT')
 
+    def do_OPTIONS(self):
+        self.do('OPTIONS')
+
+    def do_HEAD(self):
+        self.send_response(200)
+        self.end_headers()
+        return
+
 class APIFunction(ABC):
     def __init__(self):
         pass
@@ -90,6 +111,10 @@ class APIFunction(ABC):
 
     @abstractmethod
     def execute(self, handler: Handler, body: bytes, method: str, user: auth.User): ...
+
+    @abstractmethod
+    def allowed_methods(self): ...
+
 
 endpoints: dict[str, APIFunction] = {}
 
