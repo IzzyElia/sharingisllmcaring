@@ -9,6 +9,7 @@ const banner = document.getElementById("banner");
 const createTokenForm = document.getElementById("create-token-form");
 const tokenUsesEl = document.getElementById("token-uses");
 const tokenAuthTypesEl = document.getElementById("token-auth-types");
+const tokenKeyEl = document.getElementById("token-key");
 const tokenRows = document.getElementById("token-rows");
 const tokenEmpty = document.getElementById("token-empty");
 const tokenCount = document.getElementById("token-count");
@@ -133,6 +134,7 @@ async function createToken(e) {
     e.preventDefault();
     const uses = parseInt(tokenUsesEl.value, 10);
     const authTypes = tokenAuthTypesEl.value.trim();
+    const key = tokenKeyEl.value.trim();
     if (!Number.isInteger(uses) || uses < 1) {
         showBanner("Allowed uses must be a positive whole number.", "error");
         return;
@@ -141,16 +143,19 @@ async function createToken(e) {
         showBanner("Please provide at least one auth type.", "error");
         return;
     }
+    const headers = {
+        "Registration-Token-Allowed-Uses": String(uses),
+        "Registration-Token-Auth-Types": authTypes,
+    };
+    if (key) headers["Registration-Token-Create-As-Key"] = key;
     try {
-        const res = await adminFetch("/api/create_registration_token", {
-            "Registration-Token-Allowed-Uses": String(uses),
-            "Registration-Token-Auth-Types": authTypes,
-        });
+        const res = await adminFetch("/api/create_registration_token", headers);
         if (res.status !== 200) {
             showBanner("Failed to create token (status " + res.status + ").", "error");
             return;
         }
         showBanner("Registration token created.", "ok");
+        tokenKeyEl.value = "";
         await loadTokens();
     } catch (err) {
         /* 401 already surfaced */

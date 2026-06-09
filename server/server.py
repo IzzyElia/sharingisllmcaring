@@ -32,13 +32,17 @@ def start_server(address: str, port: int):
     server_thread.start()
     print('Server started at http://localhost:8080')
 
+    def save():
+        auth.save()
+
     try:
         while True:
-            time.sleep(5)
-            print("Saving...")
-            auth.save()
+            time.sleep(300)
+            save()
     except KeyboardInterrupt:
         print("Shutting down...")
         if isinstance(server, ThreadingHTTPServer):
             server.shutdown()
             server.server_close()
+        save()
+        print("Stopped successfully")

@@ -43,8 +43,10 @@ class APICreateRegistrationToken(APIFunction):
             handler.end_headers()
             return
 
+        forced_token_key = handler.headers.get("Registration-Token-Create-As-Key")
+
         auth_types = [x.strip() for x in auth_types.split(',')]
-        auth.generate_registration_token(uses_allowed=num_allowed_uses, auth_types=auth_types)
+        auth.generate_registration_token(uses_allowed=num_allowed_uses, auth_types=auth_types, forced_token_key=forced_token_key)
         handler.send_response(200)
         handler.end_headers()
         return

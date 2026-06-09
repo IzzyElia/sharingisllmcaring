@@ -64,11 +64,31 @@ class AccessToken:
         self.user_uid = user_uid
         self.expires_at = expires_at
 
-class RegistrationToken:
+class RegistrationToken(storage.Savable):
     def __init__(self, registration_token: str, uses_allowed: int, auth_types: list[str]):
+        super().__init__()
         self.token_key = registration_token
         self.uses_remaining = uses_allowed
         self.auth_types = auth_types
+
+    def category(self) -> str:
+        return 'registration_token'
+
+    def id(self) -> str:
+        return self.token_key
+
+    def serialize(self) -> dict:
+        return {
+            'token_key': self.token_key,
+            'uses_remaining': self.uses_remaining,
+            'auth_types': self.auth_types
+        }
+
+    def deserialize(self, data: dict):
+        self.token_key = data['token_key']
+        self.uses_remaining = int(data['uses_remaining'])
+        self.auth_types = data['auth_types']
+
 
 class ExpiredAccessTokenException(Exception):
     pass
@@ -82,12 +102,12 @@ _user_uid_by_hashed_username: dict[str, str] = {}
 _access_tokens: dict[str, AccessToken] = {}
 _registration_tokens: dict[str, RegistrationToken] = {}
 
-def hash_plaintext_username(plaintext_username: str) -> str:
-    return hmac.new(HASHING_SECRET.encode(), plaintext_username.encode(), hashlib.sha256).hexdigest()
+def hash_plaintext(plaintext: str) -> str:
+    return hmac.new(HASHING_SECRET.encode(), plaintext.encode(), hashlib.sha256).hexdigest()
 
 def get_user(plaintext_username: str) -> User | None:
     with mutex:
-        hashed_username = hash_plaintext_username(plaintext_username)
+        hashed_username = hash_plaintext(plaintext_username)
 
         if hashed_username in _user_uid_by_hashed_username:
             uid = _user_uid_by_hashed_username[hashed_username]
@@ -101,7 +121,7 @@ def add_user(plaintext_username: str, plaintext_password: str, auth_types: list[
     with mutex:
         uid = uids.generate_uid(list(_users_by_uid.keys()))
 
-        hashed_username = hash_plaintext_username(plaintext_username)
+        hashed_username = hash_plaintext(plaintext_username)
         hashed_password = bcrypt.hashpw(plaintext_password.encode(PASSWORD_ENCODING), bcrypt.gensalt()).decode(PASSWORD_ENCODING)
         user = User(uid=uid,
                     auth_types=auth_types,
@@ -115,16 +135,20 @@ def add_user(plaintext_username: str, plaintext_password: str, auth_types: list[
 def delete_user(uid: str):
     with mutex:
         user = _users_by_uid.pop(uid)
+        storage.delete_serializable_object_data(user)
         _user_uid_by_hashed_username.pop(user.hashed_username)
+
 
 def check_password(user: User, plaintext_password: str) -> bool:
     with mutex:
         return bcrypt.checkpw(plaintext_password.encode(PASSWORD_ENCODING), user.hashed_password.encode(PASSWORD_ENCODING))
 
-def generate_registration_token(uses_allowed: int, auth_types: list[str]) -> RegistrationToken:
+def generate_registration_token(uses_allowed: int, auth_types: list[str], forced_token_key: str | None) -> RegistrationToken:
     with mutex:
+        if forced_token_key is None:
+            forced_token_key = uids.generate_uid(list(_registration_tokens.keys()))
         new_token = RegistrationToken(
-            registration_token=uids.generate_uid(list(_registration_tokens.keys())),
+            registration_token=forced_token_key,
             uses_allowed=uses_allowed,
             auth_types=auth_types)
         _registration_tokens[new_token.token_key] = new_token
@@ -133,6 +157,7 @@ def generate_registration_token(uses_allowed: int, auth_types: list[str]) -> Reg
 def delete_registration_token(token_key: str):
     with mutex:
         if token_key in _registration_tokens:
+            storage.delete_serializable_object_data(_registration_tokens[token_key])
             del _registration_tokens[token_key]
         else:
             raise KeyError
@@ -156,7 +181,7 @@ def try_consume_registration_token_and_create_user(token_key: str, requested_use
         if token is None:
             return RegisterUserErrorType.InvalidRegistrationToken
 
-        hashed_requested_username = hash_plaintext_username(requested_username)
+        hashed_requested_username = hash_plaintext(requested_username)
         if hashed_requested_username in _user_uid_by_hashed_username.keys():
             return RegisterUserErrorType.UsernameTaken
         try:
@@ -200,11 +225,15 @@ def save():
         for user in list_users():
             if user.should_be_saved_to_disk:
                 storage.save_serializable_object(user)
+        for registration_token in list_registration_tokens():
+            storage.save_serializable_object(registration_token)
 def load():
     with mutex:
         for user in storage.load_all_objects_of_category('user', User):
             _users_by_uid[user.uid] = user
             _user_uid_by_hashed_username[user.hashed_username] = user.uid
+        for registration_token in storage.load_all_objects_of_category('registration_token', RegistrationToken):
+            _registration_tokens[registration_token.token_key] = registration_token
 
 if __name__ == "__main__":
     user = add_user(plaintext_username="test", plaintext_password="password", auth_types=["user", "admin"])

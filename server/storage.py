@@ -68,7 +68,6 @@ def sanitize(name: str, max_length: int = 255) -> str:
     if not name: return ""
     return name
 
-
 def save_serializable_object(obj: Savable):
     category = sanitize(obj.category())
     id = sanitize(obj.id())
