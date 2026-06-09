@@ -2,9 +2,42 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sign in</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/login.css">
 </head>
 <body>
+    <div class="card">
+        <div class="brand">
+            <div class="dot"></div>
+            <h1>Sharing is LLM Caring</h1>
+        </div>
 
+        <div class="tabs">
+            <button class="tab active" id="tab-login" type="button">Sign in</button>
+            <button class="tab" id="tab-register" type="button">Register</button>
+        </div>
+
+        <form id="auth-form" autocomplete="on">
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text" autocomplete="username" required>
+
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password" autocomplete="current-password" required>
+
+            <div id="reg-token-group" hidden>
+                <label for="reg-token">Registration token</label>
+                <input id="reg-token" name="reg-token" type="text" autocomplete="off">
+            </div>
+
+            <button class="primary" id="submit" type="submit">Sign in</button>
+            <div class="msg" id="msg"></div>
+        </form>
+
+        <div class="hint">Local chat with your own Ollama model.</div>
+    </div>
+
+    <script src="/login.js"></script>
 </body>
 </html>

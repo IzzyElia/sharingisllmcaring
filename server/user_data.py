@@ -1,4 +1,5 @@
 from __future__ import annotations
+import time
 from .storage import Serializable
 from .uids import generate_uid
 
@@ -14,18 +15,21 @@ class Chat(Serializable):
             self.uid = None # Should only trigger during deserialization, which will fill in the uid later
         self.title = self.uid
         self.currently_responding: bool = False
+        self.last_used = time.time()
 
     def serialize(self) -> dict:
         return {
             "uid": self.uid,
             "title": self.title,
             "messages": self.messages,
+            "last_used": self.last_used,
         }
 
     def deserialize(self, data: dict):
         self.uid = data["uid"]
         self.title = data["title"]
         self.messages = data["messages"]
+        self.last_used = float(data["last_used"])
 
 
 

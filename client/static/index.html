@@ -2,9 +2,50 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sharing is LLM Caring</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/index.css">
 </head>
 <body>
-Hello world
+    <aside class="sidebar">
+        <div class="sidebar-head">
+            <div class="dot"></div>
+            <h1>Sharing is LLM Caring</h1>
+        </div>
+        <button class="new-chat" id="new-chat">+ New chat</button>
+        <div class="chat-list" id="chat-list"></div>
+        <div class="sidebar-foot">
+            <span id="status">Ready</span>
+            <button id="logout">Log out</button>
+        </div>
+    </aside>
+
+    <main class="main">
+        <div class="messages" id="messages">
+            <div class="placeholder" id="placeholder">Select a chat or start a new one to begin.</div>
+        </div>
+        <div class="composer">
+            <div class="composer-inner">
+                <textarea id="input" rows="1" placeholder="Message the model…" disabled></textarea>
+                <button class="send" id="send" disabled title="Send">↑</button>
+            </div>
+            <div class="composer-note">Enter to send · Shift+Enter for a new line</div>
+        </div>
+    </main>
+
+    <div class="modal-backdrop" id="modal">
+        <div class="modal">
+            <h2>New chat</h2>
+            <p>Optionally set a system prompt to steer the assistant.</p>
+            <textarea id="system-prompt">You are a helpful assistant.</textarea>
+            <div class="modal-actions">
+                <button class="cancel" id="modal-cancel">Cancel</button>
+                <button class="create" id="modal-create">Create chat</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/index.js"></script>
 </body>
 </html>
