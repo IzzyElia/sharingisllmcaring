@@ -19,7 +19,7 @@ def get_subclasses_recursive(super_class):
 
 server: ThreadingHTTPServer | None = None
 
-def start_server():
+def start_server(address: str, port: int):
     auth.load()
 
     for api_function in get_subclasses_recursive(handler.APIFunction):
@@ -27,7 +27,7 @@ def start_server():
         for endpoint in instance.endpoints():
             handler.register_endpoint(endpoint, instance)
 
-    server = ThreadingHTTPServer(('localhost', 8080), handler.Handler)
+    server = ThreadingHTTPServer((address, port), handler.Handler)
     server_thread = threading.Thread(target=server.serve_forever)
     server_thread.start()
     print('Server started at http://localhost:8080')
