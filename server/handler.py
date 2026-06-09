@@ -23,6 +23,12 @@ class Handler(BaseHTTPRequestHandler):
                 return
             try:
                 user = auth.get_access_token_user(access_token)
+                authorized = False
+                for potential_auth_type in function.auth_types_allowed():
+                    if potential_auth_type in user.auth_types:
+                        authorized = True
+                        break
+                if not authorized: raise auth.InvalidAccessTokenException
             except (auth.ExpiredAccessTokenException, auth.InvalidAccessTokenException):
                 if function.on_auth_failure() == AuthFailureResponse.Unauthorized:
                     self.send_response(401)
@@ -36,6 +42,7 @@ class Handler(BaseHTTPRequestHandler):
                 elif function.on_auth_failure() == AuthFailureResponse.AlwaysAllowed:
                     user = None
                 else: raise NotImplementedError()
+
             try:
                 content_length_str = self.headers.get("Content-Length")
                 if content_length_str is None:

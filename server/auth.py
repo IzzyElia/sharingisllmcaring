@@ -57,6 +57,7 @@ class User(storage.Savable):
         self.user_data = user_data
         self.should_be_saved_to_disk = True
 
+
 class AccessToken:
     def __init__(self, access_token: str, user_uid: str, expires_at: float):
         self.access_token_key = access_token
