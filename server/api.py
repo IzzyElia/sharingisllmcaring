@@ -3,6 +3,7 @@ import time
 import ollama
 import json
 import asyncio
+import mimetypes
 from dotenv import load_dotenv
 import os
 
@@ -479,6 +480,9 @@ class APIServeStaticFile(APIFunction):
             with open(file_path, 'rb') as file:
                 data = file.read()
                 handler.send_response(200)
+                content_type, encoding = mimetypes.guess_type(file_path)
+                if content_type is None: content_type = "text/plain"
+                handler.send_header("Content-type", content_type)
                 handler.end_headers()
                 handler.wfile.write(data)
                 handler.wfile.flush()
