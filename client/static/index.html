@@ -8,10 +8,13 @@
     <link rel="stylesheet" href="/index.css">
 </head>
 <body>
+    <button class="sidebar-expand" id="sidebar-expand" type="button" title="Show sidebar" aria-label="Show sidebar">»</button>
+
     <aside class="sidebar">
         <div class="sidebar-head">
             <div class="dot"></div>
             <h1>Sharing is LLM Caring</h1>
+            <button class="sidebar-collapse" id="sidebar-collapse" type="button" title="Hide sidebar" aria-label="Hide sidebar">«</button>
         </div>
         <button class="new-chat" id="new-chat">+ New chat</button>
         <div class="chat-list" id="chat-list"></div>
@@ -37,7 +40,7 @@
     <div class="modal-backdrop" id="modal">
         <div class="modal">
             <h2>New chat</h2>
-            <p>Optionally set a system prompt to steer the assistant.</p>
+            <p>Set a system prompt or leave it blank</p>
             <textarea id="system-prompt">You are a helpful assistant.</textarea>
             <div class="modal-actions">
                 <button class="cancel" id="modal-cancel">Cancel</button>

@@ -13,6 +13,8 @@ const sendBtn = document.getElementById("send");
 const statusEl = document.getElementById("status");
 const modal = document.getElementById("modal");
 const systemPromptEl = document.getElementById("system-prompt");
+const sidebarCollapseEl = document.getElementById("sidebar-collapse");
+const sidebarExpandEl = document.getElementById("sidebar-expand");
 
 // ---- State ----
 let chats = [];            // [{uid, title}]
@@ -41,6 +43,13 @@ async function authedFetch(path, body) {
 }
 
 function setStatus(text) { statusEl.textContent = text; }
+
+// ---- Sidebar collapse ----
+const SIDEBAR_COLLAPSED_KEY = "slc_sidebar_collapsed";
+function setSidebarCollapsed(collapsed) {
+    document.body.classList.toggle("sidebar-collapsed", collapsed);
+    localStorage.setItem(SIDEBAR_COLLAPSED_KEY, collapsed ? "1" : "0");
+}
 
 // ---- Lightweight, dependency-free formatting ----
 function escapeHtml(s) {
@@ -268,8 +277,11 @@ document.getElementById("new-chat").addEventListener("click", openModal);
 document.getElementById("modal-cancel").addEventListener("click", closeModal);
 document.getElementById("modal-create").addEventListener("click", createChat);
 document.getElementById("logout").addEventListener("click", logout);
+sidebarCollapseEl.addEventListener("click", () => setSidebarCollapsed(true));
+sidebarExpandEl.addEventListener("click", () => setSidebarCollapsed(false));
 modal.addEventListener("click", (e) => { if (e.target === modal) closeModal(); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
 
 // ---- Init ----
+setSidebarCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1");
 loadChats();
